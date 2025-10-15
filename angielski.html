@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Can! 2 - English Fun</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Roboto:wght@400;700&display=swap');
+
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #ffc107;
+            --correct-color: #28a745;
+            --incorrect-color: #dc3545;
+            --bg-color: #f0f8ff;
+            --text-color: #333;
+            --font-main: 'Roboto', sans-serif;
+            --font-display: 'Fredoka One', cursive;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        h1, h2 {
+            font-family: var(--font-display);
+            color: var(--primary-color);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            font-family: var(--font-display);
+            padding: 15px 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            background-color: var(--primary-color);
+            line-height: 1.4;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: #554200;
+        }
+        
+        .btn-large {
+            grid-column: 1 / -1;
+            padding: 20px;
+            font-size: 1.5em;
+        }
+
+        #test-screen #question-area {
+            background: var(--primary-color);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        #test-screen #question-text {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        #speaker-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 2em;
+            color: white;
+        }
+
+        #test-screen #answer-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border-radius: 12px;
+            border: 2px solid #ccc;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        #feedback {
+            margin-top: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            height: 30px;
+        }
+
+        #score-display {
+            font-family: var(--font-display);
+            font-size: 1.5em;
+            margin: 10px 0;
+            color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <div id="home-screen" class="screen active">
+            <h1>English Fun</h1>
+            <p>Nauka słówek z "Kids Can! 2"</p>
+            <div class="grid-container">
+                <button class="btn btn-large" onclick="showScreen('chapter-screen')">Zacznij Naukę!</button>
+            </div>
+        </div>
+
+        <div id="chapter-screen" class="screen">
+            <h2>Wybierz Rozdział</h2>
+            <div class="grid-container">
+                </div>
+            <button class="btn btn-secondary" style="margin-top: 20px;" onclick="showScreen('home-screen')">Powrót</button>
+        </div>
+        
+        <div id="level-screen" class="screen">
+            <h2 id="level-title"></h2>
+            <div class="grid-container">
+                <button class="btn" onclick="startTest('podstawowe')">Podstawowe</button>
+                <button class="btn" onclick="startTest('rozszerzone')">Rozszerzone</button>
+            </div>
+            <button class="btn btn-secondary" style="margin-top: 20px;" onclick="showScreen('chapter-screen')">Powrót</button>
+        </div>
+
+        <div id="test-screen" class="screen">
+            <div id="score-display">Wynik: 0/0</div>
+            <div id="question-area">
+                <div id="question-prompt" style="font-size: 1em; margin-bottom: 5px;"></div>
+                <div style="display: flex; align-items: center; justify-content: center;">
+                    <span id="question-text"></span>
+                    <button id="speaker-btn" onclick="speakCurrentWord()">🔊</button>
+                </div>
+            </div>
+            <div id="answer-options" class="grid-container"></div>
+            <div id="feedback"></div>
+            <button class="btn btn-secondary" style="margin-top: 20px;" onclick="endTest()">Zakończ</button>
+        </div>
+
+        <div id="results-screen" class="screen">
+            <h2>Świetna Robota!</h2>
+            <p id="final-score" style="font-size: 1.5em; margin: 20px 0;"></p>
+            <div class="grid-container">
+                <button class="btn" onclick="restartTest()">Spróbuj jeszcze raz</button>
+                <button class="btn btn-secondary" onclick="showScreen('chapter-screen')">Wybierz inny rozdział</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const vocabulary = {
+            "Rozdział Wstępny": [
+                { pl: 'pochmurno', en: 'cloudy', level: 'podstawowe' },
+                { pl: 'zimno', en: 'cold', level: 'podstawowe' },
+                { pl: 'gorąco', en: 'hot', level: 'podstawowe' },
+                { pl: 'deszczowo', en: 'rainy', level: 'podstawowe' },
+                { pl: 'słonecznie', en: 'sunny', level: 'podstawowe' },
+                { pl: 'wietrznie', en: 'windy', level: 'podstawowe' },
+                { pl: 'śnieżnie', en: 'snowy', level: 'rozszerzone' },
+                { pl: 'mgliście', en: 'foggy', level: 'rozszerzone' },
+                { pl: 'Jak masz na imię?', en: "What's your name?", level: 'podstawowe' },
+                { pl: 'Ile masz lat?', en: 'How old are you?', level: 'podstawowe' },
+            ],
+            "Rozdział 1: At School": [
+                { pl: 'klasa', en: 'classroom', level: 'podstawowe' },
+                { pl: 'biblioteka', en: 'library', level: 'podstawowe' },
+                { pl: 'plac zabaw', en: 'playground', level: 'podstawowe' },
+                { pl: 'toaleta', en: 'toilet', level: 'podstawowe' },
+                { pl: 'za', en: 'behind', level: 'podstawowe' },
+                { pl: 'obok', en: 'next to', level: 'podstawowe' },
+                { pl: 'klej', en: 'glue', level: 'rozszerzone' },
+                { pl: 'nożyczki', en: 'scissors', level: 'rozszerzone' },
+                { pl: 'farby', en: 'paints', level: 'rozszerzone' },
+                { pl: 'plastelina', en: 'plasticine', level: 'rozszerzone' },
+            ],
+            // Dodaj kolejne rozdziały tutaj...
+        };
+
+        let currentTestWords = [];
+        let currentQuestion = {};
+        let score = 0;
+        let questionsAsked = 0;
+        let currentChapter, currentLevel;
+
+        const synth = window.speechSynthesis;
+        let utterance = new SpeechSynthesisUtterance();
+        utterance.lang = 'en-US';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const chapterContainer = document.querySelector('#chapter-screen .grid-container');
+            Object.keys(vocabulary).forEach(chapter => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = chapter;
+                btn.onclick = () => selectChapter(chapter);
+                chapterContainer.appendChild(btn);
+            });
+        });
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function selectChapter(chapter) {
+            currentChapter = chapter;
+            document.getElementById('level-title').textContent = chapter;
+            showScreen('level-screen');
+        }
+        
+        function startTest(level) {
+            currentLevel = level;
+            currentTestWords = vocabulary[currentChapter].filter(word => word.level === level || level === 'rozszerzone' && word.level === 'podstawowe');
+            
+            if (currentTestWords.length < 4) {
+                alert("Za mało słówek w tej kategorii, aby rozpocząć test.");
+                return;
+            }
+
+            score = 0;
+            questionsAsked = 0;
+            updateScore();
+            nextQuestion();
+            showScreen('test-screen');
+        }
+        
+        function nextQuestion() {
+            if (questionsAsked >= 10) { // Test kończy się po 10 pytaniach
+                endTest();
+                return;
+            }
+            
+            questionsAsked++;
+            
+            const questionType = Math.floor(Math.random() * 3); // 0: en->pl, 1: pl->en, 2: pisanie
+            
+            currentTestWords.sort(() => 0.5 - Math.random());
+            currentQuestion = currentTestWords[0];
+
+            const answerOptionsContainer = document.getElementById('answer-options');
+            answerOptionsContainer.innerHTML = '';
+            document.getElementById('feedback').textContent = '';
+
+            // Ustawienie pytania i lektora
+            document.getElementById('question-text').textContent = questionType === 1 ? currentQuestion.pl : currentQuestion.en;
+            document.getElementById('speaker-btn').style.display = (questionType === 1) ? 'none' : 'inline-block';
+
+            if (questionType === 0) { // Angielski -> Polski (wybór)
+                document.getElementById('question-prompt').textContent = 'Przetłumacz na polski:';
+                const options = [currentQuestion, ...currentTestWords.slice(1, 4)];
+                options.sort(() => 0.5 - Math.random());
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn';
+                    btn.textContent = opt.pl;
+                    btn.onclick = () => checkAnswer(opt.pl === currentQuestion.pl);
+                    answerOptionsContainer.appendChild(btn);
+                });
+            } else if (questionType === 1) { // Polski -> Angielski (wybór)
+                 document.getElementById('question-prompt').textContent = 'Przetłumacz na angielski:';
+                const options = [currentQuestion, ...currentTestWords.slice(1, 4)];
+                options.sort(() => 0.5 - Math.random());
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn';
+                    btn.textContent = opt.en;
+                    btn.onclick = () => checkAnswer(opt.en === currentQuestion.en);
+                    answerOptionsContainer.appendChild(btn);
+                });
+            } else { // Polski -> Angielski (pisanie)
+                document.getElementById('question-prompt').textContent = 'Napisz po angielsku:';
+                document.getElementById('question-text').textContent = currentQuestion.pl;
+                document.getElementById('speaker-btn').style.display = 'none';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'answer-input';
+                input.autocomplete = 'off';
+                input.autocapitalize = 'none';
+                input.onkeydown = (event) => {
+                    if (event.key === 'Enter') checkWritingAnswer();
+                };
+                
+                const submitBtn = document.createElement('button');
+                submitBtn.className = 'btn';
+                submitBtn.textContent = 'Sprawdź';
+                submitBtn.onclick = checkWritingAnswer;
+
+                answerOptionsContainer.style.gridTemplateColumns = '1fr';
+                answerOptionsContainer.appendChild(input);
+                answerOptionsContainer.appendChild(submitBtn);
+                input.focus();
+            }
+        }
+        
+        function checkWritingAnswer() {
+            const input = document.getElementById('answer-input');
+            const isCorrect = input.value.trim().toLowerCase() === currentQuestion.en.toLowerCase();
+            checkAnswer(isCorrect);
+        }
+
+        function checkAnswer(isCorrect) {
+            const feedbackEl = document.getElementById('feedback');
+            if (isCorrect) {
+                score++;
+                feedbackEl.textContent = 'Dobrze! 🎉';
+                feedbackEl.style.color = 'var(--correct-color)';
+            } else {
+                feedbackEl.textContent = `Błąd. Poprawna odpowiedź: ${currentQuestion.en}`;
+                feedbackEl.style.color = 'var(--incorrect-color)';
+            }
+            updateScore();
+            setTimeout(nextQuestion, 1500);
+        }
+
+        function updateScore() {
+            document.getElementById('score-display').textContent = `Wynik: ${score}/${questionsAsked}`;
+        }
+        
+        function speakCurrentWord() {
+            utterance.text = currentQuestion.en;
+            synth.speak(utterance);
+        }
+
+        function endTest() {
+            document.getElementById('final-score').textContent = `Twój wynik to: ${score} na ${questionsAsked} punktów.`;
+            showScreen('results-screen');
+        }
+
+        function restartTest() {
+            startTest(currentLevel);
+        }
+
+    </script>
+
+</body>
+</html>
